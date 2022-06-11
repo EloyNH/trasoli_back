@@ -3,9 +3,11 @@ package com.megafact.controller;
 import com.megafact.dto.PersonalDTO;
 import com.megafact.dto.RepresentanteLegalDTO;
 import com.megafact.exception.ModeloNotFoundException;
+import com.megafact.model.GiroNegocio;
 import com.megafact.model.Persona;
 import com.megafact.model.RepresentanteLegal;
 import com.megafact.model.TipoDocumento;
+import com.megafact.payload.CustomResponse;
 import com.megafact.service.IPersonaService;
 import com.megafact.service.IPersonalService;
 import com.megafact.service.IRepresentanteLegalService;
@@ -60,25 +62,43 @@ public class RepresentanteLegalController {
         }
     }
 
-    /*@GetMapping( path = "/{id}")
-    public Optional<RepresentanteLegal> obtenerRepresentantePorId(@PathVariable("id") Long id) {
-        return this.service.listarPorId(id);
-    }
-
-    @GetMapping("/query")
-    public ArrayList<RepresentanteLegal> obtenerUsuarioPorPrioridad(@RequestParam("num_partida") String num_partida){
-        return this.service.obtenerPorNumPartida(num_partida);
-    }
-
-    @DeleteMapping( path = "/{id}")
-    public String eliminarPorId(@PathVariable("id") Long id){
-        boolean ok = this.service.eliminarRepresentanteLegal(id);
-        if (ok){
-            return "Se eliminó el representante con id " + id;
-        }else{
-            return "No pudo eliminar el representante con id" + id;
+    @GetMapping(value = "/listar/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> listarId(@PathVariable("id") Long id) {
+        RepresentanteLegal representanteLegal = service.listarPorId(id);
+        if (id <= 0) {
+            String msg = "el -> id " + id + " es invalido";
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(CustomResponse.builder().codigo(0).mensaje(msg).build());
         }
-    }*/
+
+        if (representanteLegal == null) {
+            //throw new ModeloNotFoundException("Id " + id+" no encontrado");
+            String msg = "Id " + id + " no encontrado";
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(CustomResponse.builder().codigo(0).mensaje(msg).build());
+        }
+
+        if (representanteLegal != null) {
+            //return new ResponseEntity<>(giroNegocio, HttpStatus.OK);
+            return ResponseEntity.ok(representanteLegal);
+        } else {
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+        }
+
+    }
+
+//    @GetMapping("/query")
+//    public ArrayList<RepresentanteLegal> obtenerUsuarioPorPrioridad(@RequestParam("num_partida") String num_partida){
+//        return this.service.obtenerPorNumPartida(num_partida);
+//    }
+
+//    @DeleteMapping( path = "/{id}")
+//    public String eliminarPorId(@PathVariable("id") Long id){
+//        boolean ok = this.service.eliminarRepresentanteLegal(id);
+//        if (ok){
+//            return "Se eliminó el representante con id " + id;
+//        }else{
+//            return "No pudo eliminar el representante con id" + id;
+//        }
+//    }
 
 
     @PutMapping(value = "/modificar", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
@@ -94,9 +114,16 @@ public class RepresentanteLegalController {
                 throw new ModeloNotFoundException("Id de persona no encontrado " + rep.getPersona().getIdPersona());
             }
 
-            Persona personaDB = personaService.registrar(rep.getPersona());
-            rep.getRepresentanteLegal().setPersona(personaDB);
-            RepresentanteLegal representanteLegalDB = service.registrar(rep.getRepresentanteLegal());
+            persona.setCorreo(rep.getPersona().getCorreo());
+            persona.setDireccion(rep.getPersona().getDireccion());
+            persona.setTelefoMovil(rep.getPersona().getTelefoMovil());
+            persona.setRazonSocial(rep.getPersona().getRazonSocial());
+            persona.setNumeroDocumento(rep.getPersona().getNumeroDocumento());
+
+            Persona personaDB = personaService.registrar(persona);
+            repLegal.setNumeroPartida(rep.getRepresentanteLegal().getNumeroPartida());
+            repLegal.setPersona(personaDB);
+            RepresentanteLegal representanteLegalDB = service.registrar(repLegal);
             return new ResponseEntity<>(representanteLegalDB, HttpStatus.OK);
 
         } catch (Exception e) {
