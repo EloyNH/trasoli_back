@@ -119,6 +119,7 @@ public class RepresentanteLegalController {
             persona.setTelefoMovil(rep.getPersona().getTelefoMovil());
             persona.setRazonSocial(rep.getPersona().getRazonSocial());
             persona.setNumeroDocumento(rep.getPersona().getNumeroDocumento());
+            persona.setTipoDocumento(rep.getPersona().getTipoDocumento());
 
             Persona personaDB = personaService.registrar(persona);
             repLegal.setNumeroPartida(rep.getRepresentanteLegal().getNumeroPartida());
